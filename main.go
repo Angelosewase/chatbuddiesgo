@@ -41,6 +41,8 @@ func main() {
 	router := chi.NewRouter()
     userRouter :=chi.NewRouter()
     userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
+	userRouter.Post("/logIn",Handlers.LoginHandler(ApiConfig.DB))
+	userRouter.Get("/logout",Handlers.LogoutHandler)
 	router.Mount("/user",userRouter)
 
 	srv := &http.Server{

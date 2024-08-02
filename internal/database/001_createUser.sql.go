@@ -11,10 +11,8 @@ import (
 )
 
 const createUser = `-- name: CreateUser :execresult
-
-INSERT INTO users (id,firstName,lastName,email,password)VALUES(
-    ?,?,?,?,?
-)
+INSERT INTO users (id, firstName, lastName, email, password)
+VALUES (?, ?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
@@ -33,4 +31,23 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 		arg.Email,
 		arg.Password,
 	)
+}
+
+const getUser = `-- name: GetUser :one
+SELECT id, firstname, lastname, email, password FROM users
+WHERE email = ?
+LIMIT 1
+`
+
+func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Firstname,
+		&i.Lastname,
+		&i.Email,
+		&i.Password,
+	)
+	return i, err
 }
