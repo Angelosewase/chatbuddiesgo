@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"github.com/go-chi/cors"
 )
 
 
@@ -39,6 +40,13 @@ func main() {
 
 
 	router := chi.NewRouter()
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	}))
     userRouter :=chi.NewRouter()
     userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
 	userRouter.Post("/logIn",Handlers.LoginHandler(ApiConfig.DB))

@@ -94,7 +94,6 @@ func LogIn(res http.ResponseWriter, req *http.Request, db *database.Queries) err
 	if err != nil {
 		return fmt.Errorf("incorrect Password: %v", err)
 	}
-
 	token, err := auth.GenerateJwtToken()
 
 	if err != nil {
