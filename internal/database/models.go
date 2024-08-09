@@ -8,6 +8,15 @@ import (
 	"database/sql"
 )
 
+type Chat struct {
+	ID           string
+	Createdby    sql.NullString
+	Lastmessage  sql.NullString
+	Participants sql.NullString
+	CreatedAt    sql.NullTime
+	IsGroupChat  sql.NullBool
+}
+
 type User struct {
 	ID        string
 	Firstname sql.NullString

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -51,7 +50,12 @@ func SignUp(res http.ResponseWriter, req *http.Request, db *database.Queries) er
 func SignUpHandler(db *database.Queries) func(res http.ResponseWriter, req *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := SignUp(res, req, db); err != nil {
-			log.Fatal(err)
+            errres,err:=json.Marshal(err)
+			if err != nil{
+               res.Write([]byte("internal serve error"))
+			}
+			res.Write([]byte("Error creating user"))
+			res.Write(errres)
 		}
 
 		res.WriteHeader(200)
