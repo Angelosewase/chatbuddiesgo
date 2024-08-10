@@ -8,10 +8,11 @@ import (
 
 	"github.com/Angelosewase/chatbuddiesgo/Handlers"
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
+	"github.com/Angelosewase/chatbuddiesgo/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"github.com/go-chi/cors"
 )
 
 
@@ -48,6 +49,7 @@ func main() {
 		AllowCredentials: true,
 	}))
     userRouter :=chi.NewRouter()
+	userRouter.Use(middleware.AuthMiddleware)
     userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
 	userRouter.Post("/logIn",Handlers.LoginHandler(ApiConfig.DB))
 	userRouter.Get("/logout",Handlers.LogoutHandler)
