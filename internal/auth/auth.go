@@ -30,6 +30,7 @@ func GenerateJwtToken() (string, error) {
 			Issuer:    "angel",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
+            
 		},
 	}
 

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,14 +18,17 @@ func RespondWithJson(res http.ResponseWriter, req *http.Request, data interface{
 	return nil
 }
 
-func RespondWithError(res http.ResponseWriter, req *http.Request, code int, errorMessage error) error {
+func RespondWithError(res http.ResponseWriter, req *http.Request, code int, errorMessage error)  {
 	if code < 500 {
 		res.WriteHeader(code)
 		http.Error(res, errorMessage.Error(), http.StatusBadRequest)
+	}else{
+		res.WriteHeader(code)
+		http.Error(res, errorMessage.Error(), http.StatusInternalServerError)
 	}
 
-	res.WriteHeader(code)
-	http.Error(res, errorMessage.Error(), http.StatusInternalServerError)
-	return nil
+
 
 }
+
+

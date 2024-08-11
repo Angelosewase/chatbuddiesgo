@@ -15,9 +15,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-
-type ApiCfg struct{
-    DB *database.Queries
+type ApiCfg struct {
+	DB *database.Queries
 }
 
 func main() {
@@ -39,7 +38,6 @@ func main() {
 		DB: database.New(connection),
 	}
 
-
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
@@ -48,12 +46,20 @@ func main() {
 		ExposedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	}))
-    userRouter :=chi.NewRouter()
-	userRouter.Use(middleware.AuthMiddleware)
-    userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
-	userRouter.Post("/logIn",Handlers.LoginHandler(ApiConfig.DB))
-	userRouter.Get("/logout",Handlers.LogoutHandler)
-	router.Mount("/user",userRouter)
+	userRouter := chi.NewRouter()
+	chatRouter := chi.NewRouter()
+	chatRouter.Use(middleware.AuthMiddleware)
+
+	userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
+	userRouter.Post("/logIn", Handlers.LoginHandler(ApiConfig.DB))
+	userRouter.Get("/logout", Handlers.LogoutHandler)
+	router.Mount("/user", userRouter)
+
+	
+	chatRouter.Post("/chats", Handlers.GetChatHandler(ApiConfig.DB))
+
+	router.Mount("/chat", chatRouter)
+
 
 	srv := &http.Server{
 		Addr:    ":" + PORT,
@@ -61,7 +67,7 @@ func main() {
 	}
 
 	log.Printf("server running on port %v", PORT)
-	err= srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal("error ruunning the serve:", err)
 	}

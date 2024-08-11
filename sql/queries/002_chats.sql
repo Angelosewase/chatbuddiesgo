@@ -1,6 +1,6 @@
 -- name: CreateChat :execresult
-INSERT INTO chats (id, lastMessage, participants, created_at, is_group_chat)
-VALUES (?, ?, ?, ?, ?);
+INSERT INTO chats (id, createdby, lastMessage, participants, created_at, is_group_chat)
+VALUES (?, ?, ?, ?, ?,?);
 
 -- name: GetChat :one
 SELECT * FROM chats
@@ -23,3 +23,7 @@ WHERE id = ?;
 
 -- name: GetChats :many
 SELECT * FROM chats;
+
+-- name: GetChatsByuserId :many
+SELECT * FROM chats
+WHERE createdby = ?;

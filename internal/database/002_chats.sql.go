@@ -11,12 +11,13 @@ import (
 )
 
 const createChat = `-- name: CreateChat :execresult
-INSERT INTO chats (id, lastMessage, participants, created_at, is_group_chat)
-VALUES (?, ?, ?, ?, ?)
+INSERT INTO chats (id, createdby, lastMessage, participants, created_at, is_group_chat)
+VALUES (?, ?, ?, ?, ?,?)
 `
 
 type CreateChatParams struct {
 	ID           string
+	Createdby    sql.NullString
 	Lastmessage  sql.NullString
 	Participants sql.NullString
 	CreatedAt    sql.NullTime
@@ -26,6 +27,7 @@ type CreateChatParams struct {
 func (q *Queries) CreateChat(ctx context.Context, arg CreateChatParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createChat,
 		arg.ID,
+		arg.Createdby,
 		arg.Lastmessage,
 		arg.Participants,
 		arg.CreatedAt,
@@ -69,6 +71,41 @@ SELECT id, createdby, lastmessage, participants, created_at, is_group_chat FROM 
 
 func (q *Queries) GetChats(ctx context.Context) ([]Chat, error) {
 	rows, err := q.db.QueryContext(ctx, getChats)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Chat
+	for rows.Next() {
+		var i Chat
+		if err := rows.Scan(
+			&i.ID,
+			&i.Createdby,
+			&i.Lastmessage,
+			&i.Participants,
+			&i.CreatedAt,
+			&i.IsGroupChat,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getChatsByuserId = `-- name: GetChatsByuserId :many
+SELECT id, createdby, lastmessage, participants, created_at, is_group_chat FROM chats
+WHERE createdby = ?
+`
+
+func (q *Queries) GetChatsByuserId(ctx context.Context, createdby sql.NullString) ([]Chat, error) {
+	rows, err := q.db.QueryContext(ctx, getChatsByuserId, createdby)
 	if err != nil {
 		return nil, err
 	}

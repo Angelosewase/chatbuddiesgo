@@ -50,12 +50,16 @@ func SignUp(res http.ResponseWriter, req *http.Request, db *database.Queries) er
 func SignUpHandler(db *database.Queries) func(res http.ResponseWriter, req *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := SignUp(res, req, db); err != nil {
-            errres,err:=json.Marshal(err)
-			if err != nil{
-               res.Write([]byte("internal serve error"))
+			res.WriteHeader(http.StatusInternalServerError)
+
+			errres, err := json.Marshal(err)
+			if err != nil {
+		        res.Write([]byte("internal server error"))
+				return
 			}
-			res.Write([]byte("Error creating user"))
+			// res.Write([]byte("Error creating user"))
 			res.Write(errres)
+			return
 		}
 
 		res.WriteHeader(200)
@@ -69,14 +73,12 @@ func LogIn(res http.ResponseWriter, req *http.Request, db *database.Queries) err
 		Password string `json:"password"`
 	}
 
-	type User struct{
-		Id string
+	type User struct {
+		Id         string
 		First_name string
-		Last_name string
-		Email string
+		Last_name  string
+		Email      string
 	}
-
-
 
 	parameters := Parameters{}
 
@@ -110,18 +112,19 @@ func LogIn(res http.ResponseWriter, req *http.Request, db *database.Queries) err
 		Name:     "jwt",
 		Value:    token,
 		HttpOnly: true,
+		Path: "/",
 	})
 
-	resUser :=User{
-           Id: user.ID,
-		   First_name: user.Firstname.String,
-		   Last_name: user.Lastname.String,
-		   Email: user.Email,
+	resUser := User{
+		Id:         user.ID,
+		First_name: user.Firstname.String,
+		Last_name:  user.Lastname.String,
+		Email:      user.Email,
 	}
 
-	jsonuser,err:=json.Marshal(resUser)
-	if err != nil{
-		return fmt.Errorf("error converting user into json: %v",err)
+	jsonuser, err := json.Marshal(resUser)
+	if err != nil {
+		return fmt.Errorf("error converting user into json: %v", err)
 	}
 
 	res.Write(jsonuser)
@@ -139,11 +142,11 @@ func LoginHandler(db *database.Queries) func(res http.ResponseWriter, req *http.
 	}
 }
 
-func LogoutHandler(res http.ResponseWriter, req *http.Request){
-	http.SetCookie(res,&http.Cookie{
-		Expires: time.Now().Add(-time.Hour),
-		Name: "jwt",
-		Value: "",
+func LogoutHandler(res http.ResponseWriter, req *http.Request) {
+	http.SetCookie(res, &http.Cookie{
+		Expires:  time.Now().Add(-time.Hour),
+		Name:     "jwt",
+		Value:    "",
 		HttpOnly: true,
 	})
 }
