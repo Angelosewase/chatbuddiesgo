@@ -6,6 +6,7 @@ package database
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Chat struct {
@@ -13,7 +14,7 @@ type Chat struct {
 	Createdby    sql.NullString
 	Lastmessage  sql.NullString
 	Participants sql.NullString
-	CreatedAt    sql.NullTime
+	CreatedAt    time.Time
 	IsGroupChat  sql.NullBool
 }
 

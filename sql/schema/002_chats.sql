@@ -4,7 +4,7 @@ CREATE TABLE chats (
     createdby VARCHAR(200),
     lastMessage TEXT,
     participants TEXT,
-    created_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
     is_group_chat BOOLEAN,
     FOREIGN KEY (createdby) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE(participants, createdby) 

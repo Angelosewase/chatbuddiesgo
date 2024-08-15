@@ -11,11 +11,11 @@ import (
 )
 
 type Claims struct {
-	Username string `json:"username"`
+	Id string `json:"id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJwtToken() (string, error) {
+func GenerateJwtToken(userId string) (string, error) {
 
 	godotenv.Load()
 	SECRET_JWT_KEY := os.Getenv("SECRET_JWT_KEY")
@@ -25,7 +25,7 @@ func GenerateJwtToken() (string, error) {
 	}
 
 	claims := Claims{
-		Username: "user",
+		Id: userId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "angel",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
@@ -61,7 +61,7 @@ func ValidateToken(tokenstring string) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims.Username, nil
+		return claims.Id, nil
 	} else {
 		return "", fmt.Errorf("invalide claims")
 	}

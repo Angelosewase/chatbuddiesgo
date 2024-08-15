@@ -56,7 +56,10 @@ func main() {
 	router.Mount("/user", userRouter)
 
 	
-	chatRouter.Post("/chats", Handlers.GetChatHandler(ApiConfig.DB))
+	chatRouter.Get("/chats", Handlers.GetChatHandler(ApiConfig.DB))
+	chatRouter.Post("/newChat",Handlers.CreateChatHandler(ApiConfig.DB))
+	chatRouter.Delete("/deleteChat",Handlers.DeleteChatHandler(ApiConfig.DB))
+
 
 	router.Mount("/chat", chatRouter)
 

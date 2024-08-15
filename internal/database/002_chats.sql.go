@@ -8,6 +8,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createChat = `-- name: CreateChat :execresult
@@ -20,7 +21,7 @@ type CreateChatParams struct {
 	Createdby    sql.NullString
 	Lastmessage  sql.NullString
 	Participants sql.NullString
-	CreatedAt    sql.NullTime
+	CreatedAt    time.Time
 	IsGroupChat  sql.NullBool
 }
 

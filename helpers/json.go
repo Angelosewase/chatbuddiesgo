@@ -20,10 +20,8 @@ func RespondWithJson(res http.ResponseWriter, req *http.Request, data interface{
 
 func RespondWithError(res http.ResponseWriter, req *http.Request, code int, errorMessage error)  {
 	if code < 500 {
-		res.WriteHeader(code)
 		http.Error(res, errorMessage.Error(), http.StatusBadRequest)
 	}else{
-		res.WriteHeader(code)
 		http.Error(res, errorMessage.Error(), http.StatusInternalServerError)
 	}
 

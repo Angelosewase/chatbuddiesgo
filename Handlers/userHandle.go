@@ -100,7 +100,7 @@ func LogIn(res http.ResponseWriter, req *http.Request, db *database.Queries) err
 	if err != nil {
 		return fmt.Errorf("incorrect Password: %v", err)
 	}
-	token, err := auth.GenerateJwtToken()
+	token, err := auth.GenerateJwtToken(user.ID)
 
 	if err != nil {
 		return fmt.Errorf("error generating token :%v", err)
