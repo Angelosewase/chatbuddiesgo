@@ -5,10 +5,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Angelosewase/chatbuddiesgo/Handlers"
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 	"github.com/Angelosewase/chatbuddiesgo/middleware"
+	"github.com/Angelosewase/chatbuddiesgo/socket"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
@@ -55,14 +58,22 @@ func main() {
 	userRouter.Get("/logout", Handlers.LogoutHandler)
 	router.Mount("/user", userRouter)
 
-	
 	chatRouter.Get("/chats", Handlers.GetChatHandler(ApiConfig.DB))
-	chatRouter.Post("/newChat",Handlers.CreateChatHandler(ApiConfig.DB))
-	chatRouter.Delete("/deleteChat",Handlers.DeleteChatHandler(ApiConfig.DB))
+	chatRouter.Post("/newChat", Handlers.CreateChatHandler(ApiConfig.DB))
+	chatRouter.Delete("/deleteChat", Handlers.DeleteChatHandler(ApiConfig.DB))
 
+	socketServer := &socket.Server{}
+	if err := socketServer.NewServer(); err != nil {
+		log.Fatalf("Failed to create socket server: %v", err)
+	}
+
+	chatRouter.Handle("/message", socketServer.SocketServer)
+
+	if err := socketServer.Start(); err != nil {
+		log.Fatalf("Failed to start socket server: %v", err)
+	}
 
 	router.Mount("/chat", chatRouter)
-
 
 	srv := &http.Server{
 		Addr:    ":" + PORT,
@@ -75,4 +86,16 @@ func main() {
 		log.Fatal("error ruunning the serve:", err)
 	}
 
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	if err := srv.Close(); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	// Close the Socket.IO server
+	socketServer.Close()
 }
