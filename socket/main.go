@@ -16,7 +16,9 @@ type Server struct {
 
 // NewServer initializes a new Socket.IO server instance
 func (server *Server) NewServer() error {
-	srv := sockeio.NewServer(nil)
+	server.SocketServer = sockeio.NewServer(nil)
+
+
 
 	var userId string
 
@@ -37,10 +39,10 @@ func (server *Server) NewServer() error {
 		userId = id
 
 		// Forward the request to the Socket.IO server
-		srv.ServeHTTP(w, r)
+		server.SocketServer.ServeHTTP(w, r)
 	})
 
-	srv.OnConnect("/", func(c sockeio.Conn) error {
+	server.SocketServer.OnConnect("/", func(c sockeio.Conn) error {
 
 		if userId == "" {
 			return fmt.Errorf("invalid user id: %v", userId)
@@ -52,12 +54,10 @@ func (server *Server) NewServer() error {
 		return nil
 	})
 
-	srv.OnDisconnect("/", func(c sockeio.Conn, id string) {
+	server.SocketServer.OnDisconnect("/", func(c sockeio.Conn, id string) {
 		c.Leave(id)
 		fmt.Println("disconnected ", c.ID())
 	})
-	
-	server.SocketServer = srv
 	return nil
 }
 
@@ -73,4 +73,11 @@ func (server *Server) Start() error {
 // Close stops the Socket.IO server
 func (server *Server) Close() {
 	server.SocketServer.Close()
+}
+
+
+//this function should have/take the socketio server instacnce and emit a socket event to given client using the user id 
+func(s *Server) EmitSocket(receiverId string, evnt string, msg interface{})error  {
+  s.SocketServer.BroadcastToRoom("",receiverId,evnt,msg)
+	return nil 
 }
