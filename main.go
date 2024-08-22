@@ -61,6 +61,7 @@ func main() {
 	chatRouter.Get("/chats", Handlers.GetChatHandler(ApiConfig.DB))
 	chatRouter.Post("/newChat", Handlers.CreateChatHandler(ApiConfig.DB))
 	chatRouter.Delete("/deleteChat", Handlers.DeleteChatHandler(ApiConfig.DB))
+	chatRouter.Post("/user", Handlers.GetUserByUserId(ApiConfig.DB))
 
 	socketServer := &socket.Server{}
 	if err := socketServer.NewServer(); err != nil {

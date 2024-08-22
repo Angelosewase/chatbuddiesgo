@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Angelosewase/chatbuddiesgo/helpers"
 	"github.com/Angelosewase/chatbuddiesgo/internal/auth"
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 	"github.com/google/uuid"
@@ -54,7 +55,7 @@ func SignUpHandler(db *database.Queries) func(res http.ResponseWriter, req *http
 
 			errres, err := json.Marshal(err)
 			if err != nil {
-		        res.Write([]byte("internal server error"))
+				res.Write([]byte("internal server error"))
 				return
 			}
 			// res.Write([]byte("Error creating user"))
@@ -112,7 +113,7 @@ func LogIn(res http.ResponseWriter, req *http.Request, db *database.Queries) err
 		Name:     "jwt",
 		Value:    token,
 		HttpOnly: true,
-		Path: "/",
+		Path:     "/",
 	})
 
 	resUser := User{
@@ -149,4 +150,46 @@ func LogoutHandler(res http.ResponseWriter, req *http.Request) {
 		Value:    "",
 		HttpOnly: true,
 	})
+}
+
+func GetUserByUserId(db *database.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		type Parameters struct {
+			UserId string `json:"userId"`
+		}
+		parameters := Parameters{}
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&parameters)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		user, err := db.GetUserByUserId(r.Context(), parameters.UserId)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		type User struct {
+			Id         string
+			First_name string
+			Last_name  string
+			Email      string
+		}
+
+		resUser := User{
+			Id:         user.ID,
+			First_name: user.Firstname.String,
+			Last_name:  user.Lastname.String,
+			Email:      user.Email,
+		}
+
+		err = helpers.RespondWithJson(w, r, resUser, 200)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 }

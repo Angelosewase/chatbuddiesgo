@@ -18,3 +18,8 @@ WHERE id = ?;
 
 -- name: GetUsers :many
 SELECT * FROM users;
+
+-- name: GetUserByUserId :one
+SELECT * FROM users 
+WHERE  id = ?
+LIMIT 1

@@ -26,12 +26,33 @@ func GetChats(res http.ResponseWriter, req *http.Request, db *database.Queries) 
 		return 401, fmt.Errorf("error fetching chats: %v", err)
 	}
 
-	helpers.RespondWithJson(res, req, chats, http.StatusAccepted)
+
+    type ChatResponse struct {
+        ID           string    `json:"id"`
+        CreatedBy    string    `json:"createdby"`
+        LastMessage  string    `json:"lastMessage"`
+        Participants string    `json:"participants"`
+        CreatedAt    time.Time `json:"created_at"`
+        IsGroupChat  bool      `json:"is_group_chat"`
+    }
+
+    chatsResponse := []ChatResponse{}
+
+    for _, value := range chats {
+        chatsResponse = append(chatsResponse, ChatResponse{
+            ID:           value.ID,
+            CreatedBy:    value.Createdby.String,
+            LastMessage:  value.Lastmessage.String,
+            Participants: value.Participants.String,
+            CreatedAt:    value.CreatedAt,
+            IsGroupChat:  value.IsGroupChat.Bool,
+        })
+    }
+
+	helpers.RespondWithJson(res, req, chatsResponse, http.StatusAccepted)
 
 	return 0, nil
 }
-
-
 
 func GetChatHandler(db *database.Queries) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -47,7 +68,6 @@ func GetChatHandler(db *database.Queries) http.HandlerFunc {
 
 func CreateChatHandler(db *database.Queries) http.HandlerFunc {
 
-	
 	type participantsArray []string
 	type parameters struct {
 		Participants participantsArray `json:"participants"`
@@ -125,4 +145,5 @@ func DeleteChatHandler(db *database.Queries) http.HandlerFunc {
 	}
 
 }
+
 //creation of the chat managent handle
