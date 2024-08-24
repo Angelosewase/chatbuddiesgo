@@ -56,6 +56,8 @@ func main() {
 	userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
 	userRouter.Post("/logIn", Handlers.LoginHandler(ApiConfig.DB))
 	userRouter.Get("/logout", Handlers.LogoutHandler)
+	userRouter.Get("/isLoggedIn", Handlers.IsLoggedIn(ApiConfig.DB))
+	userRouter.Post("/search", Handlers.SearchHandler(ApiConfig.DB))
 	router.Mount("/user", userRouter)
 
 	chatRouter.Get("/chats", Handlers.GetChatHandler(ApiConfig.DB))

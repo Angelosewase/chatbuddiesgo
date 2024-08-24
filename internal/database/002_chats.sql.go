@@ -135,6 +135,44 @@ func (q *Queries) GetChatsByuserId(ctx context.Context, createdby sql.NullString
 	return items, nil
 }
 
+const getUserByName = `-- name: GetUserByName :many
+SELECT id, firstname, lastname, email, password FROM users WHERE firstName LIKE CONCAT('%', ?, '%') OR lastName LIKE CONCAT('%', ?, '%')
+`
+
+type GetUserByNameParams struct {
+	CONCAT   interface{}
+	CONCAT_2 interface{}
+}
+
+func (q *Queries) GetUserByName(ctx context.Context, arg GetUserByNameParams) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUserByName, arg.CONCAT, arg.CONCAT_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Firstname,
+			&i.Lastname,
+			&i.Email,
+			&i.Password,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateChat = `-- name: UpdateChat :execresult
 UPDATE chats
 SET lastMessage = ?, participants = ?, is_group_chat = ?

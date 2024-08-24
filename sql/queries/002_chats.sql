@@ -27,3 +27,6 @@ SELECT * FROM chats;
 -- name: GetChatsByuserId :many
 SELECT * FROM chats
 WHERE createdby = ?;
+
+-- name: GetUserByName :many
+SELECT * FROM users WHERE firstName LIKE CONCAT('%', ?, '%') OR lastName LIKE CONCAT('%', ?, '%');

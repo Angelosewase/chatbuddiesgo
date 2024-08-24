@@ -193,3 +193,64 @@ func GetUserByUserId(db *database.Queries) http.HandlerFunc {
 		}
 	}
 }
+
+func SearchHandler(db *database.Queries) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		querryParams := r.URL.Query()
+		userName := querryParams.Get("q")
+
+		users, err := db.GetUserByName(r.Context(), database.GetUserByNameParams{
+			CONCAT:   userName,
+			CONCAT_2: userName,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+
+		}
+		helpers.RespondWithJson(w, r, users, http.StatusAccepted)
+	}
+}
+
+func IsLoggedIn(db *database.Queries) http.HandlerFunc {
+	type User struct {
+		Id         string 
+		First_name string
+		Last_name  string
+		Email      string
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		jwtCookie, err := r.Cookie("jwt")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		userId, err := auth.ValidateToken(jwtCookie.Value)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		user, err := db.GetUserByUserId(r.Context(), userId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		resUser := User{
+			Id:         user.ID,
+			First_name: user.Firstname.String,
+			Last_name:  user.Lastname.String,
+			Email:      user.Email,
+		}
+
+		err = helpers.RespondWithJson(w, r, resUser, 200)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+	}
+}

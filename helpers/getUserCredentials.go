@@ -20,3 +20,6 @@ func GetUserIdFromToken(req *http.Request) (string, error) {
 
 	return userId, nil
 }
+
+
+
