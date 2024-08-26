@@ -196,7 +196,15 @@ func GetUserByUserId(db *database.Queries) http.HandlerFunc {
 
 func SearchHandler(db *database.Queries) http.HandlerFunc {
 
+	type resUser struct {
+		Id         string
+		First_name string
+		Last_name  string
+		Email      string
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		resUsers := []resUser{}
 		querryParams := r.URL.Query()
 		userName := querryParams.Get("q")
 
@@ -204,18 +212,28 @@ func SearchHandler(db *database.Queries) http.HandlerFunc {
 			CONCAT:   userName,
 			CONCAT_2: userName,
 		})
+
+		for _, value := range users {
+			resUsers = append(resUsers, resUser{
+				Id:         value.ID,
+				First_name: value.Firstname.String,
+				Last_name:  value.Lastname.String,
+				Email:      value.Email,
+			})
+		}
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 
 		}
-		helpers.RespondWithJson(w, r, users, http.StatusAccepted)
+		helpers.RespondWithJson(w, r, resUsers, http.StatusAccepted)
 	}
 }
 
 func IsLoggedIn(db *database.Queries) http.HandlerFunc {
 	type User struct {
-		Id         string 
+		Id         string
 		First_name string
 		Last_name  string
 		Email      string

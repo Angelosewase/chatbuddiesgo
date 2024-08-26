@@ -11,5 +11,5 @@ CREATE TABLE chats (
 );
 
 -- +goose down
--- DROP TABLE chats;
+DROP TABLE chats;
 
