@@ -1,6 +1,6 @@
 -- +goose up
 CREATE TABLE users(
-    id VARCHAR(64) PRIMARY KEY ,
+    id VARCHAR(200) PRIMARY KEY ,
     firstName TEXT,
     lastName TEXT,
     email TEXT UNIQUE NOT NULL,

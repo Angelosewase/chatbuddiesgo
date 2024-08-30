@@ -14,6 +14,9 @@ import (
 	"github.com/google/uuid"
 )
 
+
+
+
 func GetChats(res http.ResponseWriter, req *http.Request, db *database.Queries) (int, error) {
 	userId, err := helpers.GetUserIdFromToken(req)
 	if err != nil {
