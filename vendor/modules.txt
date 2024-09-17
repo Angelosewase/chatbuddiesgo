@@ -11,34 +11,12 @@ github.com/go-chi/cors
 # github.com/go-sql-driver/mysql v1.8.1
 ## explicit; go 1.18
 github.com/go-sql-driver/mysql
-# github.com/gofrs/uuid v4.0.0+incompatible
-## explicit
-github.com/gofrs/uuid
 # github.com/golang-jwt/jwt/v5 v5.2.1
 ## explicit; go 1.18
 github.com/golang-jwt/jwt/v5
-# github.com/gomodule/redigo v1.8.4
-## explicit; go 1.14
-github.com/gomodule/redigo/redis
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/googollee/go-socket.io v1.7.0
-## explicit; go 1.16
-github.com/googollee/go-socket.io
-github.com/googollee/go-socket.io/engineio
-github.com/googollee/go-socket.io/engineio/frame
-github.com/googollee/go-socket.io/engineio/packet
-github.com/googollee/go-socket.io/engineio/payload
-github.com/googollee/go-socket.io/engineio/session
-github.com/googollee/go-socket.io/engineio/transport
-github.com/googollee/go-socket.io/engineio/transport/polling
-github.com/googollee/go-socket.io/engineio/transport/utils
-github.com/googollee/go-socket.io/engineio/transport/websocket
-github.com/googollee/go-socket.io/parser
-# github.com/gorilla/websocket v1.4.2
-## explicit; go 1.12
-github.com/gorilla/websocket
 # github.com/joho/godotenv v1.5.1
 ## explicit; go 1.12
 github.com/joho/godotenv

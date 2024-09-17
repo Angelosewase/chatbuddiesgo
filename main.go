@@ -11,7 +11,6 @@ import (
 	"github.com/Angelosewase/chatbuddiesgo/Handlers"
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 	"github.com/Angelosewase/chatbuddiesgo/middleware"
-	"github.com/Angelosewase/chatbuddiesgo/socket"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
@@ -43,7 +42,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedOrigins:   []string{"https://*", "http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		ExposedHeaders:   []string{"*"},
@@ -64,18 +63,6 @@ func main() {
 	chatRouter.Post("/newChat", Handlers.CreateChatHandler(ApiConfig.DB))
 	chatRouter.Delete("/deleteChat", Handlers.DeleteChatHandler(ApiConfig.DB))
 	chatRouter.Post("/user", Handlers.GetUserByUserId(ApiConfig.DB))
-
-	socketServer := &socket.Server{}
-	if err := socketServer.NewServer(); err != nil {
-		log.Fatalf("Failed to create socket server: %v", err)
-	}
-
-	chatRouter.Handle("/message", socketServer.SocketServer)
-
-	if err := socketServer.Start(); err != nil {
-		log.Fatalf("Failed to start socket server: %v", err)
-	}
-
 	router.Mount("/chat", chatRouter)
 
 	srv := &http.Server{
@@ -86,7 +73,7 @@ func main() {
 	log.Printf("server running on port %v", PORT)
 	err = srv.ListenAndServe()
 	if err != nil {
-		log.Fatal("error ruunning the serve:", err)
+		log.Fatal("error running the server:", err)
 	}
 
 	quit := make(chan os.Signal, 1)
@@ -99,6 +86,4 @@ func main() {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
-	// Close the Socket.IO server
-	socketServer.Close()
 }
