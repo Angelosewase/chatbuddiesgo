@@ -145,12 +145,16 @@ func LoginHandler(db *database.Queries) func(res http.ResponseWriter, req *http.
 
 func LogoutHandler(res http.ResponseWriter, req *http.Request) {
 	http.SetCookie(res, &http.Cookie{
-		Expires:  time.Now().Add(-time.Hour),
 		Name:     "jwt",
 		Value:    "",
+		Expires:  time.Now().Add(-24 * time.Hour), 
+		MaxAge:   -1, 
 		HttpOnly: true,
+		Path:     "/", 
 	})
+	res.WriteHeader(http.StatusOK)
 }
+
 
 func GetUserByUserId(db *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

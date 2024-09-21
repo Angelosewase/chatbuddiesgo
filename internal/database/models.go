@@ -6,8 +6,54 @@ package database
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 )
+
+type MessagesContentType string
+
+const (
+	MessagesContentTypeText  MessagesContentType = "text"
+	MessagesContentTypeImage MessagesContentType = "image"
+	MessagesContentTypeVideo MessagesContentType = "video"
+	MessagesContentTypeFile  MessagesContentType = "file"
+)
+
+func (e *MessagesContentType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MessagesContentType(s)
+	case string:
+		*e = MessagesContentType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MessagesContentType: %T", src)
+	}
+	return nil
+}
+
+type NullMessagesContentType struct {
+	MessagesContentType MessagesContentType
+	Valid               bool // Valid is true if MessagesContentType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMessagesContentType) Scan(value interface{}) error {
+	if value == nil {
+		ns.MessagesContentType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MessagesContentType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMessagesContentType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MessagesContentType), nil
+}
 
 type Chat struct {
 	ID           string
@@ -16,6 +62,17 @@ type Chat struct {
 	Participants sql.NullString
 	CreatedAt    time.Time
 	IsGroupChat  sql.NullBool
+}
+
+type Message struct {
+	ID          string
+	ChatID      string
+	SenderID    string
+	Content     string
+	ContentType NullMessagesContentType
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	IsDeleted   sql.NullBool
 }
 
 type User struct {

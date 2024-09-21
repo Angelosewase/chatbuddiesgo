@@ -11,6 +11,7 @@ import (
 	"github.com/Angelosewase/chatbuddiesgo/Handlers"
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 	"github.com/Angelosewase/chatbuddiesgo/middleware"
+	"github.com/Angelosewase/chatbuddiesgo/sockets"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
@@ -63,6 +64,8 @@ func main() {
 	chatRouter.Post("/newChat", Handlers.CreateChatHandler(ApiConfig.DB))
 	chatRouter.Delete("/deleteChat", Handlers.DeleteChatHandler(ApiConfig.DB))
 	chatRouter.Post("/user", Handlers.GetUserByUserId(ApiConfig.DB))
+
+
 	router.Mount("/chat", chatRouter)
 
 	srv := &http.Server{
@@ -70,11 +73,14 @@ func main() {
 		Handler: router,
 	}
 
+	go sockets.RunMainSocketServer();
+
 	log.Printf("server running on port %v", PORT)
 	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal("error running the server:", err)
 	}
+
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

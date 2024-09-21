@@ -13,4 +13,4 @@ CREATE TABLE messages (
 );
 
 -- +goose down 
-DROP TABLE messages;
+-- DROP TABLE messages;

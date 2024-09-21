@@ -1,50 +1,74 @@
 package Handlers
 
-// import (
-// 	"encoding/json"
-// 	"net/http"
-// 	"time"
+import (
+	"context"
+	"database/sql"
+	"fmt"
 
-// 	"github.com/Angelosewase/chatbuddiesgo/helpers"
-// 	"github.com/Angelosewase/chatbuddiesgo/socket"
-// )
+	"github.com/Angelosewase/chatbuddiesgo/helpers"
+	"github.com/Angelosewase/chatbuddiesgo/internal/database"
+)
 
-// func SendMessage(userId string, srvConfig socket.Server, message interface{}) {
-// 	srvConfig.EmitSocket(userId, "newMessage", message)
-// }
+type MsgHandlersStruct struct {
+	DB *database.Queries
+}
 
-// func NewMessageHandler(res http.ResponseWriter, req *http.Request) {
-// 	_, err := helpers.GetUserIdFromToken(req)
-// 	if err != nil {
-// 		return
-// 	}
-// 	type Parameters struct {
-// 		ReceiverId string    `json:"receiverId"`
-// 		Message    string    `json:"message"`
-// 		CreatedAt  time.Time `json:"createdAt"`
-// 	}
+func (msgstruct *MsgHandlersStruct) GetMessagesByChatId(chatId string) ([]database.Message, error) {
+	return msgstruct.DB.GetMessagesByChatId(context.Background(), chatId)
+}
 
-// 	parameters := Parameters{}
-// 	decoder := json.NewDecoder(req.Body)
-// 	err = decoder.Decode(&parameters)
-// 	if err != nil {
-// 		return
-// 	}
-// }
+func (msgstruct *MsgHandlersStruct) AddTextMessageDB(data database.AddTextMessageParams) error {
+	if _, err := msgstruct.DB.GetUserByUserId(context.Background(), data.SenderID); err != nil {
+		return fmt.Errorf("user not found %v", err)
+	}
 
-// func DeleteMessageHandler(r http.ResponseWriter, w *http.Request) {
-// 	_, err := helpers.GetUserIdFromToken(w)
-// 	if err != nil {
-// 		return
-// 	}
-// 	type Parameters struct {
-// 		MessageId string `json:"messageId"`
-// 	}
-// 	parameters := Parameters{}
-// 	decoder := json.NewDecoder(w.Body)
-// 	err = decoder.Decode(&parameters)
-// 	if err != nil {
-// 		return
-// 	}
+	if _, err := msgstruct.DB.GetChatByChatId(context.Background(), data.ChatID); err != nil {
+		return fmt.Errorf("chat Not Found %v", err)
+	}
 
-// }
+	if data.Content == "" {
+		return fmt.Errorf("invalid content")
+	}
+
+	if _, err := msgstruct.DB.AddTextMessage(context.Background(), data); err != nil {
+		return fmt.Errorf("error inserting message: %v", err)
+	}
+
+	_,err := msgstruct.DB.UpdateLatestMessage(context.Background(), database.UpdateLatestMessageParams{
+		Lastmessage: sql.NullString{
+			Valid:  true,
+			String: data.Content,
+		},
+		ID: data.ChatID,
+	})
+
+	if err != nil{
+   return fmt.Errorf("error updating the latest message : %v",err)
+	}
+
+	return nil
+}
+
+func (msgStruct *MsgHandlersStruct) DeleteMessage(messageId string) error {
+	if _, err := msgStruct.DB.DeleteMessage(context.Background(), messageId); err != nil {
+		return fmt.Errorf("failed to delete message %v", err)
+	}
+
+	return nil
+}
+
+
+func(msgStruct *MsgHandlersStruct) GetReceiverIdFromChatID(chatId string, senderId string)(string, error){
+	if chatId == ""{
+		return "", fmt.Errorf("invalid chatId")
+	}
+    chat,err:= msgStruct.DB.GetChatByChatId(context.Background(),chatId)
+	if err != nil{
+		return"", fmt.Errorf("error fetching chat : %v",err)
+	}
+  chatParticipants:=helpers.ParseDatabaseParticipantsString(chat.Participants.String)
+  receiverId :=helpers.RemoveLoggedInUserFromChatParticipantsArray(chatParticipants, senderId)
+	
+
+	return receiverId[0], nil
+}
