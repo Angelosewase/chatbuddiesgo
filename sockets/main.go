@@ -65,7 +65,11 @@ func ServeSocketServer(msgStruct *Handlers.MsgHandlersStruct) {
 
 			// Forward the message to the given client (ReceiverID)
 			// fmt.Printf("Forwarding message from user %s to user %s: %+v\n", userId, receivedMsg.ReceiverID, receivedMsg)
-			SendMessage()
+			receiverID, err := msgStruct.GetReceiverIdFromChatID(receivedMsg.ChatID, userId)
+			if err != nil {
+				return
+			}
+			SendMessage(receiverID, receivedMsg, msgStruct)
 		}
 	})
 }

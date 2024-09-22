@@ -73,7 +73,11 @@ func main() {
 		Handler: router,
 	}
 
-	go sockets.RunMainSocketServer();
+	msgStruct := Handlers.MsgHandlersStruct{
+		DB: ApiConfig.DB,
+	}
+
+	go sockets.RunMainSocketServer(&msgStruct);
 
 	log.Printf("server running on port %v", PORT)
 	err = srv.ListenAndServe()
