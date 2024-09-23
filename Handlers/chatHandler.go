@@ -14,9 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
-
-
 func GetChats(res http.ResponseWriter, req *http.Request, db *database.Queries) (int, error) {
 	userId, err := helpers.GetUserIdFromToken(req)
 	if err != nil {
@@ -29,28 +26,27 @@ func GetChats(res http.ResponseWriter, req *http.Request, db *database.Queries) 
 		return 401, fmt.Errorf("error fetching chats: %v", err)
 	}
 
+	type ChatResponse struct {
+		ID           string    `json:"id"`
+		CreatedBy    string    `json:"createdby"`
+		LastMessage  string    `json:"lastMessage"`
+		Participants string    `json:"participants"`
+		CreatedAt    time.Time `json:"created_at"`
+		IsGroupChat  bool      `json:"is_group_chat"`
+	}
 
-    type ChatResponse struct {
-        ID           string    `json:"id"`
-        CreatedBy    string    `json:"createdby"`
-        LastMessage  string    `json:"lastMessage"`
-        Participants string    `json:"participants"`
-        CreatedAt    time.Time `json:"created_at"`
-        IsGroupChat  bool      `json:"is_group_chat"`
-    }
+	chatsResponse := []ChatResponse{}
 
-    chatsResponse := []ChatResponse{}
-
-    for _, value := range chats {
-        chatsResponse = append(chatsResponse, ChatResponse{
-            ID:           value.ID,
-            CreatedBy:    value.Createdby.String,
-            LastMessage:  value.Lastmessage.String,
-            Participants: value.Participants.String,
-            CreatedAt:    value.CreatedAt,
-            IsGroupChat:  value.IsGroupChat.Bool,
-        })
-    }
+	for _, value := range chats {
+		chatsResponse = append(chatsResponse, ChatResponse{
+			ID:           value.ID,
+			CreatedBy:    value.Createdby.String,
+			LastMessage:  value.Lastmessage.String,
+			Participants: value.Participants.String,
+			CreatedAt:    value.CreatedAt,
+			IsGroupChat:  value.IsGroupChat.Bool,
+		})
+	}
 
 	helpers.RespondWithJson(res, req, chatsResponse, http.StatusAccepted)
 
@@ -149,4 +145,55 @@ func DeleteChatHandler(db *database.Queries) http.HandlerFunc {
 
 }
 
-//creation of the chat managent handle
+
+func GetParticipatingChats(db *database.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userId, err := helpers.GetUserIdFromToken(r)
+	
+		if err != nil {
+
+			return
+		}
+
+		if userId == "" {
+			return
+		}
+
+		chats, err := db.GetChatNotCreatedByTheUser(r.Context(), database.GetChatNotCreatedByTheUserParams{
+			Createdby: sql.NullString{
+				Valid:  true,
+				String: userId,
+			},
+			CONCAT: userId,
+		})
+
+		if err != nil {
+			return
+		}
+
+		type ChatResponse struct {
+			ID           string    `json:"id"`
+			CreatedBy    string    `json:"createdby"`
+			LastMessage  string    `json:"lastMessage"`
+			Participants string    `json:"participants"`
+			CreatedAt    time.Time `json:"created_at"`
+			IsGroupChat  bool      `json:"is_group_chat"`
+		}
+
+		chatsResponse := []ChatResponse{}
+
+		for _, value := range chats {
+			chatsResponse = append(chatsResponse, ChatResponse{
+				ID:           value.ID,
+				CreatedBy:    value.Createdby.String,
+				LastMessage:  value.Lastmessage.String,
+				Participants: value.Participants.String,
+				CreatedAt:    value.CreatedAt,
+				IsGroupChat:  value.IsGroupChat.Bool,
+			})
+		}
+
+		helpers.RespondWithJson(w, r, chatsResponse, http.StatusAccepted)
+	}
+}
