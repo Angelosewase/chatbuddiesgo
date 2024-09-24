@@ -65,11 +65,12 @@ func ServeSocketServer(msgStruct *Handlers.MsgHandlersStruct) {
 
 			// Forward the message to the given client (ReceiverID)
 			// fmt.Printf("Forwarding message from user %s to user %s: %+v\n", userId, receivedMsg.ReceiverID, receivedMsg)
-			receiverID, err := msgStruct.GetReceiverIdFromChatID(receivedMsg.ChatID, userId)
-			if err != nil {
-				return
-			}
-			SendMessage(receiverID, receivedMsg, msgStruct)
+			// receiverID, err := msgStruct.GetReceiverIdFromChatID(receivedMsg.ChatID, userId)
+			// if err != nil {
+			// 	return
+			// }
+		    
+			SendMessage(receivedMsg.ReceiverID, receivedMsg, msgStruct, userId)
 		}
 	})
 }
@@ -84,16 +85,19 @@ func RunMainSocketServer(msgStruct *Handlers.MsgHandlersStruct) {
 }
 
 // SendMessage sends a message to a specific client
-func SendMessage(userId string, message receivedMessage, msgstruct *Handlers.MsgHandlersStruct) {
+func SendMessage(userId string, message receivedMessage, msgstruct *Handlers.MsgHandlersStruct,senderId string) {
 	WSconn, ok := Clients[userId]
+	
 	if !ok {
 		fmt.Printf("no client with userId %s found\n", userId)
+		fmt.Println(Clients);
+		fmt.Println(userId)
 		return
 	}
 	if err := msgstruct.AddTextMessageDB(database.AddTextMessageParams{
 		ID:       uuid.NewString(),
 		ChatID:   message.ChatID,
-		SenderID: userId,
+		SenderID: senderId,
 		Content:  message.Content,
 	}); err != nil {
 		fmt.Println("failed sending message")
@@ -110,9 +114,9 @@ func SendMessage(userId string, message receivedMessage, msgstruct *Handlers.Msg
 }
 
 // BroadCast broadcasts a message to all connected clients
-func BroadCast(message receivedMessage, msgStruct *Handlers.MsgHandlersStruct) {
+func BroadCast(message receivedMessage, msgStruct *Handlers.MsgHandlersStruct, userID string ) {
 	for key := range Clients {
-		SendMessage(key, message, msgStruct)
+		SendMessage(key, message, msgStruct, userID)
 	}
 }
 
@@ -121,4 +125,5 @@ type receivedMessage struct {
 	ChatID   string `json:"chat_id"`
 	Content  string `json:"content"`
 	SenderID string `json:"sender_id"`
+	ReceiverID string `json:"receiver_id"`
 }

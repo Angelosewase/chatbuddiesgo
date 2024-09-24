@@ -12,7 +12,7 @@ import (
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 	"github.com/Angelosewase/chatbuddiesgo/middleware"
 	"github.com/Angelosewase/chatbuddiesgo/sockets"
-	"github.com/Angelosewase/chatbuddiesgo/tests"
+	// "github.com/Angelosewase/chatbuddiesgo/tests"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
@@ -38,8 +38,13 @@ func main() {
 	if err != nil {
 		log.Fatal("error opening database:", err)
 	}
+
 	ApiConfig := ApiCfg{
 		DB: database.New(connection),
+	}
+
+	msgStruct := Handlers.MsgHandlersStruct{
+		DB: ApiConfig.DB,
 	}
 
 	router := chi.NewRouter()
@@ -52,6 +57,8 @@ func main() {
 	}))
 	userRouter := chi.NewRouter()
 	chatRouter := chi.NewRouter()
+	messageRouter := chi.NewRouter()
+	messageRouter.Use(middleware.AuthMiddleware)
 	chatRouter.Use(middleware.AuthMiddleware)
 
 	userRouter.Post("/signUp", Handlers.SignUpHandler(ApiConfig.DB))
@@ -66,24 +73,21 @@ func main() {
 	chatRouter.Post("/newChat", Handlers.CreateChatHandler(ApiConfig.DB))
 	chatRouter.Delete("/deleteChat", Handlers.DeleteChatHandler(ApiConfig.DB))
 	chatRouter.Post("/user", Handlers.GetUserByUserId(ApiConfig.DB))
-
-      testRouter := chi.NewRouter()
-	  testRouter.Get("/",tests.GetParticipatingChats(ApiConfig.DB))
-	  router.Mount("/test",testRouter)
-
-
 	router.Mount("/chat", chatRouter)
+
+	messageRouter.Get("/all", Handlers.GetMessagesHandler(msgStruct))
+	router.Mount("/message", messageRouter)
+
+	// testRouter := chi.NewRouter()
+	// testRouter.Get("/",tests.GetParticipatingChats(ApiConfig.DB))
+	// router.Mount("/test",testRouter)
 
 	srv := &http.Server{
 		Addr:    ":" + PORT,
 		Handler: router,
 	}
 
-	msgStruct := Handlers.MsgHandlersStruct{
-		DB: ApiConfig.DB,
-	}
-
-	go sockets.RunMainSocketServer(&msgStruct);
+	go sockets.RunMainSocketServer(&msgStruct)
 
 	log.Printf("server running on port %v", PORT)
 	err = srv.ListenAndServe()
@@ -91,11 +95,9 @@ func main() {
 		log.Fatal("error running the server:", err)
 	}
 
-
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-
 	log.Println("Shutting down server...")
 
 	if err := srv.Close(); err != nil {
