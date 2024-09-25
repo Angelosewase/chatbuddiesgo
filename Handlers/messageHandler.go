@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Angelosewase/chatbuddiesgo/helpers"
@@ -69,8 +70,7 @@ func (msgStruct *MsgHandlersStruct) GetReceiverIdFromChatID(chatId string, sende
 	}
 	chatParticipants := helpers.ParseDatabaseParticipantsString(chat.Participants.String)
 	receiverId := helpers.RemoveLoggedInUserFromChatParticipantsArray(chatParticipants, senderId)
-
-	return receiverId[0], nil
+	return strings.TrimSpace(receiverId[1]), nil
 }
 
 func GetMessagesHandler(MST MsgHandlersStruct) http.HandlerFunc {

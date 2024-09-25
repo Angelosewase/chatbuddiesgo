@@ -3,21 +3,22 @@ package tests
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/Angelosewase/chatbuddiesgo/Handlers"
 	"github.com/Angelosewase/chatbuddiesgo/helpers"
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 )
 
 func GetParticipatingChats(db *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		type parameters struct{
+		type parameters struct {
 			UserId string `json:"UserId"`
 		}
 
-		userID :=parameters{}
-	
+		userID := parameters{}
 
 		err := json.NewDecoder(r.Body).Decode(&userID)
 		if err != nil {
@@ -64,5 +65,29 @@ func GetParticipatingChats(db *database.Queries) http.HandlerFunc {
 		}
 
 		helpers.RespondWithJson(w, r, chatsResponse, http.StatusAccepted)
+	}
+}
+
+func TestGetReceiverIdFromChatID(mst Handlers.MsgHandlersStruct) http.HandlerFunc {
+
+	type parameters struct {
+		Chat_id   string ` json:"chat_id"`
+		Sender_id string `json:"sender_id"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		Parameters := parameters{}
+		if err := json.NewDecoder(r.Body).Decode(&Parameters); err != nil {
+			fmt.Println("error decoding the r body")
+		}
+
+		_, err := mst.GetReceiverIdFromChatID(Parameters.Chat_id, Parameters.Sender_id)
+
+		if err != nil {
+			fmt.Printf("error getting the receiver id from the chat id: %v", err)
+			return
+		}
+
+		// fmt.Printf("id: %v", id);
 	}
 }

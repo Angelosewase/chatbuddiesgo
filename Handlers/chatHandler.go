@@ -145,12 +145,11 @@ func DeleteChatHandler(db *database.Queries) http.HandlerFunc {
 
 }
 
-
 func GetParticipatingChats(db *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		userId, err := helpers.GetUserIdFromToken(r)
-	
+
 		if err != nil {
 
 			return
@@ -195,5 +194,40 @@ func GetParticipatingChats(db *database.Queries) http.HandlerFunc {
 		}
 
 		helpers.RespondWithJson(w, r, chatsResponse, http.StatusAccepted)
+	}
+}
+
+func GetChatByChatID(db *database.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		chatId := queryParams.Get("chat_id")
+
+		if chatId == "" {
+			return
+		}
+
+		chat, err := db.GetChatByChatId(r.Context(), chatId)
+		if err != nil {
+			return
+		}
+		type ChatResponse struct {
+			ID           string    `json:"id"`
+			CreatedBy    string    `json:"createdby"`
+			LastMessage  string    `json:"lastMessage"`
+			Participants string    `json:"participants"`
+			CreatedAt    time.Time `json:"created_at"`
+			IsGroupChat  bool      `json:"is_group_chat"`
+		}
+
+		reponse := ChatResponse{
+			ID:           chat.ID,
+			CreatedBy:    chat.Createdby.String,
+			LastMessage:  chat.Lastmessage.String,
+			Participants: chat.Participants.String,
+			CreatedAt:    chat.CreatedAt,
+			IsGroupChat:  chat.IsGroupChat.Bool,
+		}
+		helpers.RespondWithJson(w, r, reponse, http.StatusAccepted)
+
 	}
 }

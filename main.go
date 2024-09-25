@@ -12,6 +12,8 @@ import (
 	"github.com/Angelosewase/chatbuddiesgo/internal/database"
 	"github.com/Angelosewase/chatbuddiesgo/middleware"
 	"github.com/Angelosewase/chatbuddiesgo/sockets"
+	"github.com/Angelosewase/chatbuddiesgo/tests"
+
 	// "github.com/Angelosewase/chatbuddiesgo/tests"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -73,14 +75,15 @@ func main() {
 	chatRouter.Post("/newChat", Handlers.CreateChatHandler(ApiConfig.DB))
 	chatRouter.Delete("/deleteChat", Handlers.DeleteChatHandler(ApiConfig.DB))
 	chatRouter.Post("/user", Handlers.GetUserByUserId(ApiConfig.DB))
+	chatRouter.Get("/", Handlers.GetChatByChatID(ApiConfig.DB))
 	router.Mount("/chat", chatRouter)
 
 	messageRouter.Get("/all", Handlers.GetMessagesHandler(msgStruct))
 	router.Mount("/message", messageRouter)
 
-	// testRouter := chi.NewRouter()
-	// testRouter.Get("/",tests.GetParticipatingChats(ApiConfig.DB))
-	// router.Mount("/test",testRouter)
+	testRouter := chi.NewRouter()
+	testRouter.Post("/", tests.TestGetReceiverIdFromChatID(msgStruct))
+	router.Mount("/test", testRouter)
 
 	srv := &http.Server{
 		Addr:    ":" + PORT,
